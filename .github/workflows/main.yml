@@ -1,0 +1,58 @@
+name: Update RaiderIO Client
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"   # every 6 hours
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+
+      - name: Get latest release version
+        id: version
+        run: |
+          VERSION=$(curl -s https://api.github.com/repos/RaiderIO/raiderio-client-builds/releases/latest \
+            | jq -r .tag_name \
+            | sed 's/^v//')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Compute new hash
+        id: hash
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+
+          URL="https://github.com/RaiderIO/raiderio-client-builds/releases/download/v${VERSION}/RaiderIO_Installer_Linux_x86_64.AppImage"
+
+          HASH=$(nix-prefetch-url --type sha256 "$URL")
+          HASH=$(nix hash to-sri --type sha256 "$HASH")
+
+          echo "hash=$HASH" >> $GITHUB_OUTPUT
+
+      - name: Update nix file
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          HASH=${{ steps.hash.outputs.hash }}
+
+          sed -i "s/version = \".*\";/version = \"$VERSION\";/" pkgs/raiderio-client/default.nix
+          sed -i "s|hash = \".*\";|hash = \"$HASH\";|" pkgs/raiderio-client/default.nix
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+          git add pkgs/raiderio-client/default.nix
+
+          git diff --cached --quiet || git commit -m "⚔️ raiderio-client: update to ${{ steps.version.outputs.version }}"
+          git push

@@ -5,12 +5,12 @@
 }:
 
 let
-  version = "5.0.0";
+  version = "4.11.2";
   pname = "raiderio-client";
 
   src = fetchurl {
     url = "https://github.com/RaiderIO/raiderio-client-builds/releases/download/v${version}/RaiderIO_Installer_Linux_x86_64.AppImage";
-    hash = "sha256-lR/jIjgOPp/34nS7VSebFdu3mixhCSg88twjfEi/XC4=";
+    hash = "sha256-O3YqRsiiaEgEbhKBWPeErLi2OeCcvcZiuzD+eb3nCcM=";
   };
 
   appimageContents = appimageTools.extract { inherit pname version src; };

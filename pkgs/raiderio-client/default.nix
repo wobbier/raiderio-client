@@ -32,7 +32,7 @@ appimageTools.wrapType2 {
     EOF
 
     install -Dm444 \
-      "${appimageContents}/usr/share/icons/hicolor/scalable/${pname}.svg" \
+      "${appimageContents}/usr/share/icons/hicolor/scalable/apps/${pname}.svg" \
       "$out/share/icons/hicolor/scalable/apps/${pname}.svg"
   '';
 
